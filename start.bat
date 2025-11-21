@@ -1,0 +1,13 @@
+@echo off
+echo Starting Iris ML Model Platform...
+echo.
+
+pip install -r requirements.txt
+
+echo.
+echo Starting server on http://localhost:8000
+echo Press Ctrl+C to stop
+echo.
+
+python main.py
+pause

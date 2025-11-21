@@ -5,6 +5,8 @@ __pycache__/
 
 # C extensions
 *.so
+mlruns
+models
 
 # Distribution / packaging
 .Python

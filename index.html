@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iris ML Model - Train & Predict</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        input[type="number"],
+        input[type="file"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        input[type="number"]:focus,
+        input[type="file"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .metric-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .model-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .model-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 2px solid transparent;
+        }
+        
+        .model-item.active {
+            border-color: #667eea;
+            background: #e7f0ff;
+        }
+        
+        .model-item button {
+            margin-top: 10px;
+            padding: 8px;
+            font-size: 14px;
+        }
+        
+        .runs-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .run-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+        
+        .run-item:hover {
+            background: #e7f0ff;
+            border-left-color: #667eea;
+            transform: translateX(5px);
+        }
+        
+        .run-item.training {
+            border-left-color: #28a745;
+        }
+        
+        .run-item.inference {
+            border-left-color: #17a2b8;
+        }
+        
+        .run-header {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .run-type-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .run-type-badge.training {
+            background: #28a745;
+            color: white;
+        }
+        
+        .run-type-badge.inference {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .run-metrics {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .experiment-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #ddd;
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .runs-summary {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .runs-summary.show {
+            display: block;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .summary-item {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .summary-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .full-width-card {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌸 Iris ML Model Platform</h1>
+        
+        <div class="grid">
+            <!-- Train Model -->
+            <div class="card">
+                <h2>🎯 Train Model</h2>
+                <form id="trainForm">
+                    <div class="form-group">
+                        <label>Training Data (Optional - Default: Iris Dataset)</label>
+                        <input type="file" id="trainFile" accept=".csv">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            CSV format: features..., target (last column)
+                        </small>
+                    </div>
+                    <button type="submit">Train Model</button>
+                </form>
+                <div id="trainResult" class="result"></div>
+            </div>
+            
+            <!-- Single Prediction -->
+            <div class="card">
+                <h2>🔮 Make Prediction</h2>
+                <form id="predictForm">
+                    <div class="form-group">
+                        <label>Sepal Length (cm)</label>
+                        <input type="number" step="0.1" name="sepal_length" value="5.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Sepal Width (cm)</label>
+                        <input type="number" step="0.1" name="sepal_width" value="3.5" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Petal Length (cm)</label>
+                        <input type="number" step="0.1" name="petal_length" value="1.4" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Petal Width (cm)</label>
+                        <input type="number" step="0.1" name="petal_width" value="0.2" required>
+                    </div>
+                    <button type="submit">Predict</button>
+                </form>
+                <div id="predictResult" class="result"></div>
+            </div>
+            
+            <!-- Batch Prediction -->
+            <div class="card">
+                <h2>📊 Batch Prediction</h2>
+                <form id="batchForm">
+                    <div class="form-group">
+                        <label>Upload CSV File</label>
+                        <input type="file" id="batchFile" accept=".csv" required>
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            4 columns: sepal_length, sepal_width, petal_length, petal_width
+                        </small>
+                    </div>
+                    <button type="submit">Predict Batch</button>
+                </form>
+                <div id="batchResult" class="result"></div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <!-- Model Management -->
+            <div class="card">
+                <h2>💾 Saved Models</h2>
+                <button onclick="loadModels()">Refresh Models</button>
+                <div id="modelsList" class="model-list" style="margin-top: 15px;"></div>
+            </div>
+            
+            <!-- MLFlow Runs -->
+            <div class="card full-width-card">
+                <h2>📈 MLFlow Tracking Dashboard</h2>
+                
+                <div class="experiment-tabs">
+                    <button class="tab-button active" onclick="switchExperiment('all')">All Runs</button>
+                    <button class="tab-button" onclick="switchExperiment('iris_classification')">Training Runs</button>
+                    <button class="tab-button" onclick="switchExperiment('iris_inference')">Inference Runs</button>
+                </div>
+                
+                <button onclick="loadRuns()">Refresh Runs</button>
+                
+                <div id="runsSummary" class="runs-summary"></div>
+                <div id="runsList" class="runs-list" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentExperiment = 'all';
+        
+        // Train Model
+        document.getElementById('trainForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('trainResult');
+            const fileInput = document.getElementById('trainFile');
+            
+            const formData = new FormData();
+            if (fileInput.files[0]) {
+                formData.append('file', fileInput.files[0]);
+            }
+            
+            try {
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = '<div class="loading">Training model...</div>';
+                resultDiv.classList.add('show');
+                
+                const response = await fetch('/train', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success show';
+                    resultDiv.innerHTML = `
+                        <strong>✅ Model trained successfully!</strong>
+                        <div class="metrics">
+                            <div class="metric-item">
+                                <div class="metric-label">Accuracy</div>
+                                <div class="metric-value">${(data.accuracy * 100).toFixed(2)}%</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Precision</div>
+                                <div class="metric-value">${(data.classification_report['weighted avg'].precision * 100).toFixed(2)}%</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Recall</div>
+                                <div class="metric-value">${(data.classification_report['weighted avg'].recall * 100).toFixed(2)}%</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">F1-Score</div>
+                                <div class="metric-value">${(data.classification_report['weighted avg']['f1-score'] * 100).toFixed(2)}%</div>
+                            </div>
+                        </div>
+                        <p style="margin-top: 10px;"><strong>Model saved:</strong> ${data.model_path}</p>
+                        <p><strong>Run ID:</strong> ${data.run_id}</p>
+                    `;
+                    loadModels();
+                    loadRuns();
+                } else {
+                    throw new Error(data.detail || 'Training failed');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error show';
+                resultDiv.innerHTML = `<strong>❌ Error:</strong> ${error.message}`;
+            }
+        });
+        
+        // Single Prediction
+        document.getElementById('predictForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('predictResult');
+            const formData = new FormData(e.target);
+            
+            try {
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = '<div class="loading">Predicting...</div>';
+                resultDiv.classList.add('show');
+                
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success show';
+                    let probsHtml = '<div style="margin-top: 10px;"><strong>Probabilities:</strong></div>';
+                    for (const [cls, prob] of Object.entries(data.probabilities)) {
+                        probsHtml += `<div style="margin-top: 5px;">
+                            ${cls}: ${(prob * 100).toFixed(2)}%
+                            <div style="background: #ddd; height: 20px; border-radius: 10px; overflow: hidden;">
+                                <div style="background: #667eea; height: 100%; width: ${prob * 100}%;"></div>
+                            </div>
+                        </div>`;
+                    }
+                    resultDiv.innerHTML = `
+                        <strong>✅ Prediction: ${data.class_name}</strong>
+                        <div style="font-size: 24px; text-align: center; margin: 15px 0; color: #667eea;">
+                            🌸 ${data.class_name.toUpperCase()}
+                        </div>
+                        ${probsHtml}
+                    `;
+                    loadRuns();
+                } else {
+                    throw new Error(data.detail || 'Prediction failed');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error show';
+                resultDiv.innerHTML = `<strong>❌ Error:</strong> ${error.message}`;
+            }
+        });
+        
+        // Batch Prediction
+        document.getElementById('batchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('batchResult');
+            const fileInput = document.getElementById('batchFile');
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = '<div class="loading">Processing batch predictions...</div>';
+                resultDiv.classList.add('show');
+                
+                const response = await fetch('/predict_batch', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success show';
+                    let html = `<strong>✅ Processed ${data.total_samples} samples</strong>`;
+                    
+                    if (data.batch_statistics) {
+                        html += `
+                            <div class="metrics">
+                                <div class="metric-item">
+                                    <div class="metric-label">Avg Confidence</div>
+                                    <div class="metric-value">${(data.batch_statistics.avg_confidence * 100).toFixed(1)}%</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Min Confidence</div>
+                                    <div class="metric-value">${(data.batch_statistics.min_confidence * 100).toFixed(1)}%</div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        if (data.batch_statistics.prediction_distribution) {
+                            html += '<div style="margin-top: 15px;"><strong>Distribution:</strong></div>';
+                            for (const [cls, count] of Object.entries(data.batch_statistics.prediction_distribution)) {
+                                const percentage = (count / data.total_samples * 100).toFixed(1);
+                                html += `<div style="margin-top: 5px;">${cls}: ${count} (${percentage}%)</div>`;
+                            }
+                        }
+                    }
+                    
+                    html += '<br><br><strong>Sample Predictions:</strong><br>';
+                    data.predictions.slice(0, 10).forEach(pred => {
+                        html += `<div style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 5px;">
+                            <strong>Sample ${pred.sample_index}:</strong> ${pred.class_name} (${(pred.confidence * 100).toFixed(1)}%)
+                        </div>`;
+                    });
+                    if (data.total_samples > 10) {
+                        html += `<p style="margin-top: 10px; color: #666;">...and ${data.total_samples - 10} more</p>`;
+                    }
+                    resultDiv.innerHTML = html;
+                    loadRuns();
+                } else {
+                    throw new Error(data.detail || 'Batch prediction failed');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error show';
+                resultDiv.innerHTML = `<strong>❌ Error:</strong> ${error.message}`;
+            }
+        });
+        
+        // Load Models
+        async function loadModels() {
+            const modelsDiv = document.getElementById('modelsList');
+            modelsDiv.innerHTML = '<div class="loading">Loading models...</div>';
+            
+            try {
+                const response = await fetch('/models');
+                const data = await response.json();
+                
+                if (data.models.length === 0) {
+                    modelsDiv.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No models available. Train a model first.</p>';
+                    return;
+                }
+                
+                modelsDiv.innerHTML = '';
+                data.models.forEach(model => {
+                    const div = document.createElement('div');
+                    div.className = 'model-item' + (model.is_current ? ' active' : '');
+                    div.innerHTML = `
+                        <strong>${model.filename}</strong><br>
+                        <small>Size: ${model.size_kb.toFixed(2)} KB | Modified: ${model.modified}</small>
+                        ${model.is_current ? '<br><span style="color: #667eea;">● Currently Active</span>' : ''}
+                        ${!model.is_current ? `<button onclick="loadModel('${model.path}')">Load Model</button>` : ''}
+                    `;
+                    modelsDiv.appendChild(div);
+                });
+            } catch (error) {
+                modelsDiv.innerHTML = `<p style="color: red;">Error loading models: ${error.message}</p>`;
+            }
+        }
+        
+        // Load Specific Model
+        async function loadModel(path) {
+            try {
+                const formData = new FormData();
+                formData.append('model_path', path);
+                
+                const response = await fetch('/load_model', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    alert('✅ Model loaded successfully!');
+                    loadModels();
+                } else {
+                    alert('❌ Error: ' + data.detail);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+        
+        // Switch Experiment Tab
+        function switchExperiment(experimentName) {
+            currentExperiment = experimentName;
+            
+            // Update active tab
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Load runs for selected experiment
+            loadRuns();
+        }
+        
+        // Load MLFlow Runs
+        async function loadRuns() {
+            const runsDiv = document.getElementById('runsList');
+            const summaryDiv = document.getElementById('runsSummary');
+            runsDiv.innerHTML = '<div class="loading">Loading runs...</div>';
+            summaryDiv.className = 'runs-summary';
+            
+            try {
+                const url = currentExperiment === 'all' 
+                    ? '/mlflow/runs?max_results=50'
+                    : `/mlflow/runs?experiment_name=${currentExperiment}&max_results=50`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.runs.length === 0) {
+                    runsDiv.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No runs available yet. Train a model or make predictions.</p>';
+                    return;
+                }
+                
+                // Calculate summary statistics
+                const trainingRuns = data.runs.filter(r => r.experiment_name === 'iris_classification');
+                const inferenceRuns = data.runs.filter(r => r.experiment_name === 'iris_inference');
+                const avgAccuracy = trainingRuns.length > 0 
+                    ? trainingRuns.reduce((sum, r) => sum + (r.metrics.accuracy || 0), 0) / trainingRuns.length 
+                    : 0;
+                
+                // Show summary
+                summaryDiv.className = 'runs-summary show';
+                summaryDiv.innerHTML = `
+                    <strong>Summary Statistics</strong>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-number">${data.runs.length}</div>
+                            <div class="summary-label">Total Runs</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number">${trainingRuns.length}</div>
+                            <div class="summary-label">Training Runs</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number">${inferenceRuns.length}</div>
+                            <div class="summary-label">Inference Runs</div>
+                        </div>
+                    </div>
+                    ${avgAccuracy > 0 ? `<p style="margin-top: 10px; text-align: center;">Average Model Accuracy: <strong>${(avgAccuracy * 100).toFixed(2)}%</strong></p>` : ''}
+                `;
+                
+                // Display runs
+                runsDiv.innerHTML = '';
+                data.runs.forEach(run => {
+                    const div = document.createElement('div');
+                    const runType = run.experiment_name === 'iris_classification' ? 'training' : 'inference';
+                    div.className = `run-item ${runType}`;
+                    div.onclick = () => showRunDetails(run.run_id);
+                    
+                    const metrics = run.metrics;
+                    const params = run.params;
+                    
+                    let metricsHtml = `<strong>Time:</strong> ${run.start_time}<br>`;
+                    
+                    if (runType === 'training') {
+                        metricsHtml += `<strong>Status:</strong> ${run.status}<br>`;
+                        if (metrics.accuracy) metricsHtml += `<strong>Accuracy:</strong> ${(metrics.accuracy * 100).toFixed(2)}%<br>`;
+                        if (metrics.f1_score) metricsHtml += `<strong>F1-Score:</strong> ${(metrics.f1_score * 100).toFixed(2)}%<br>`;
+                        if (params.n_samples) metricsHtml += `<strong>Samples:</strong> ${params.n_samples}`;
+                    } else {
+                        if (params.prediction_type === 'batch') {
+                            metricsHtml += `<strong>Type:</strong> Batch Prediction<br>`;
+                            if (metrics.total_samples) metricsHtml += `<strong>Samples:</strong> ${metrics.total_samples}<br>`;
+                            if (metrics.avg_confidence) metricsHtml += `<strong>Avg Confidence:</strong> ${(metrics.avg_confidence * 100).toFixed(1)}%`;
+                        } else {
+                            metricsHtml += `<strong>Type:</strong> Single Prediction<br>`;
+                            if (params.predicted_class) metricsHtml += `<strong>Predicted:</strong> ${params.predicted_class}<br>`;
+                            if (metrics.prediction_confidence) metricsHtml += `<strong>Confidence:</strong> ${(metrics.prediction_confidence * 100).toFixed(1)}%`;
+                        }
+                    }
+                    
+                    div.innerHTML = `
+                        <div class="run-header">
+                            <span>Run: ${run.run_name || run.run_id.substring(0, 8) + '...'}</span>
+                            <span class="run-type-badge ${runType}">${runType}</span>
+                        </div>
+                        <div class="run-metrics">
+                            ${metricsHtml}
+                        </div>
+                    `;
+                    runsDiv.appendChild(div);
+                });
+            } catch (error) {
+                runsDiv.innerHTML = `<p style="color: red;">Error loading runs: ${error.message}</p>`;
+            }
+        }
+        
+        // Show Run Details
+        async function showRunDetails(runId) {
+            try {
+                const response = await fetch(`/mlflow/run/${runId}`);
+                const data = await response.json();
+                
+                let details = `Run ID: ${data.run_id}\n\n`;
+                details += `Status: ${data.status}\n`;
+                details += `Start: ${data.start_time}\n`;
+                details += `End: ${data.end_time || 'N/A'}\n\n`;
+                
+                details += `PARAMETERS:\n`;
+                for (const [key, value] of Object.entries(data.params)) {
+                    details += `  ${key}: ${value}\n`;
+                }
+                
+                details += `\nMETRICS:\n`;
+                for (const [key, value] of Object.entries(data.metrics)) {
+                    details += `  ${key}: ${value}\n`;
+                }
+                
+                alert(details);
+            } catch (error) {
+                alert('Error loading run details: ' + error.message);
+            }
+        }
+        
+        // Load models and runs on page load
+        window.addEventListener('load', () => {
+            loadModels();
+            loadRuns();
+        });
+    </script>
+</body>
+</html>

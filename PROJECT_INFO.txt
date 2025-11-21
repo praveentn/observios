@@ -1,0 +1,92 @@
+PROJECT STRUCTURE
+=================
+
+iris-ml-app/
+│
+├── main.py                 # FastAPI backend with all endpoints
+├── index.html              # Web interface (single page)
+├── requirements.txt        # Python dependencies
+├── README.md              # Quick documentation
+├── sample_batch.csv       # Sample data for testing batch predictions
+├── start.sh               # Linux/Mac startup script
+└── start.bat              # Windows startup script
+
+Generated folders (auto-created on first run):
+├── mlruns/                # MLFlow tracking data
+└── models/                # Saved trained models (.pkl files)
+
+
+KEY FEATURES
+============
+
+1. ✅ Train Model
+   - Default Iris dataset
+   - Upload custom CSV for training
+   - Auto-saves model to filesystem
+
+2. ✅ Make Predictions
+   - Single prediction with input form
+   - Batch prediction from CSV
+   - Real-time probability visualization
+
+3. ✅ Model Management
+   - View all saved models
+   - Switch between models
+   - Model metadata (size, date)
+
+4. ✅ MLFlow Integration
+   - Automatic experiment tracking
+   - View run history with metrics
+   - Detailed run information
+   - All metrics logged (accuracy, precision, recall, F1)
+
+5. ✅ Performance Metrics
+   - Accuracy, Precision, Recall, F1-Score
+   - Confusion matrix
+   - Classification report
+   - Probability distributions
+
+
+QUICK START
+===========
+
+Linux/Mac:
+  ./start.sh
+
+Windows:
+  start.bat
+
+Manual:
+  pip install -r requirements.txt
+  python main.py
+
+Then open: http://localhost:8000
+
+
+API ENDPOINTS
+=============
+
+Training:
+  POST /train                    # Train new model
+
+Prediction:
+  POST /predict                  # Single prediction
+  POST /predict_batch            # Batch predictions
+
+Model Management:
+  GET  /models                   # List all models
+  POST /load_model               # Load specific model
+
+MLFlow:
+  GET  /mlflow/experiments       # List experiments
+  GET  /mlflow/runs             # List runs
+  GET  /mlflow/run/{run_id}     # Run details
+
+
+MLFLOW UI (Optional)
+====================
+
+For advanced MLFlow features:
+  mlflow ui --backend-store-uri file:./mlruns
+
+Then open: http://localhost:5000
